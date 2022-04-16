@@ -3,7 +3,7 @@
 
 // Rows and columns for each block and its size // 
 int rows; int columns; 
-int sizeB = 10; 
+int sizeB = 10; // Block Size 
 
 // Width and height // 
 int w; int h; 
@@ -14,9 +14,12 @@ color snake = #2DFF00;
 
 class Snake{
   int len; 
+  // The constructor for the Snake Class // 
   Snake(int length){
     len = length; 
+
   } 
+
 }
 
 void displayBlocks(){
@@ -24,8 +27,9 @@ void displayBlocks(){
   for (int i = 0; i < rows; i++){
     int x = 0; 
       for (int j = 0; j < columns; j++){
-        //fill(1, random(10, 100), random(150, 255)); 
-        //rect(x, y, sizeB, sizeB); 
+        stroke(1);
+        fill(1, random(10, 100), random(150, 255)); 
+        rect(x, y, sizeB, sizeB); 
         x += sizeB;      
       }
       y += sizeB;   
@@ -36,7 +40,9 @@ void displayBlocks(){
 Snake a = new Snake(10); 
 
 void setup() {
-  size(1000, 1000);
+  size(700, 700);
+  surface.setTitle("Snake Game");
+  surface.setResizable(true);
   h = height; w = width; 
   noStroke();  
   background(bg);
@@ -53,7 +59,6 @@ int[][] grid;
 void draw() {  
   rows = height/sizeB; 
   columns = width/sizeB;
-  
   displayBlocks(); 
 }
 
