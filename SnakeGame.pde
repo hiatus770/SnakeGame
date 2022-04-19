@@ -1,9 +1,14 @@
 /*SNAKE GAME*/
 
-// add boundaries and collision for them 
-// ADD THE SETTINGS SO YOU CAN ADJUST THE THINS LKAJSDF;L KAJSDF ;LKJ
+// add the frame rate selection thing 
+// addd high score and score display for the game over screen
+// add the random apple generation after a certain amount of time (make it ike 50% chance)
+// make the game faster by improving .checkCollisions
+// add themes moment 
+// Reset score once dead      
 
-// Rows and columns for each block and its size // 
+
+// Rows and columns for each block and its size
 int rows; int columns; 
 int sizeB = 10; // Block Size 
 int appleAmt = 1; 
@@ -11,29 +16,40 @@ int gamestate = 0; // 0 is title screen, 1 game over, 2 is game, 3 is settings p
 int startLength = 10; 
 int textS = 100; 
 int score = 0;  
-int snakeDelay = 50; // controls how frequent snake is moved 
+int snakeDelay = 40; // controls how frequent snake is moved 
 int titleX = 80; int titleY = 80; // the title positions for the game
+int theme = 2; 
 
-// Colors for the game // 
+/* Colors for the game */ 
 color bg = #03092b; 
-color snakeColor = #2DFF00;
+color snakeColor;
 color appleColor = #eb4034; 
 color scoreColor = #2DFF00;
 color settingsColor = #A9A9A9; 
 color grey = #C0C0C0;
 
-// Game settings // 
+// 1 is normal, 2 is black and white, 3 is high contrast 
+color[] BACKGROUND = new color[]{#03092b, #ffffff, #333333}; 
+color[] SNAKE = new color[]{#eb4034, #000000, #00bfff}; 
+color[] APPLE = new color[]{#eb4034, #380000, #8cff00}; 
+
+/* Game settings */ 
 boolean selfCollide = true; 
 boolean teleportBorders = true; 
 
-// Refresh timers// 
+/* Refresh timers */ 
 int last = 0; 
 int m = 0; 
 int lastGamestate = 0; 
 
-
 /* Game font stuff */ 
 PFont gameFont;
+
+void setTheme(){
+  snakeColor = SNAKE[theme];
+  appleColor = APPLE[theme]; 
+  bg = BACKGROUND[theme]; 
+}
 
 /* Prints the score on the bottom right */ 
 void showScore(){
@@ -147,12 +163,10 @@ class Snake{
   void checkCollision(){
     if (selfCollide){
       for (int i = 0; i < positions.size(); i++){
-        for (int j = 0; j < positions.size(); j++){
-          if (j != i){
-            if (positions.get(i).x == positions.get(j).x && positions.get(i).y == positions.get(j).y){
-              println("SNAKE COLLIDED WITH ITSELF ", x, " ", y); 
-              gamestate = 1; 
-            }
+        if (i != 0){
+          if (positions.get(i).x == x && positions.get(i).y == y){
+            println("SNAKE COLLIDED WITH ITSELF ", x, " ", y); 
+            gamestate = 1; 
           }
         }
       }
@@ -165,10 +179,23 @@ class Snake{
         y = rows; 
       }
       if (x > columns){
-        x = 0; 
+        x = -1; 
       }
       if (y > rows){
-        y = 0; 
+        y = -1; 
+      } 
+    } else {
+      if (x < 0){
+        gamestate = 1;  
+      }
+      if (y < 0){
+        gamestate = 1;  
+      }
+      if (x > columns){
+        gamestate = 1; 
+      }
+      if (y > rows){
+        gamestate = 1; 
       } 
     }
   }
@@ -218,7 +245,8 @@ class Button{
 }
 
 class triButton{
-  int a, b, c, x, y; String msg;
+  int a, b, c, x, y; String msg; int val; 
+
   triButton(int x, int y, int a, int b, int c, String msg){
     this.a = a;
     this.b = b;
@@ -269,6 +297,7 @@ void checkApple(){
   for(int i = 0; i < apples.size(); i++){
     if (apples.get(i).posX == player.x && apples.get(i).posY == player.y){
       println("GOT APPLE!!!");
+      player.lengthen(5); 
       apples.remove(i); 
       apples.add(new Apple(parseInt(random(0, rows-1)), parseInt(random(0, rows-1)))); 
       score+=1; 
@@ -286,8 +315,11 @@ void drawApples(){
 
 void setup() {
   // setting up the window size and name 
-  size(900, 900);
+  size(700, 700);
   surface.setTitle("Snake Game");
+
+  // Theme stuff
+  setTheme(); 
   
   // Rows and columns in the game 
   println("ROWS:", height/sizeB);
@@ -330,6 +362,8 @@ void draw() {
       fill(255, 0, 0);
       textSize(textS);
       text("Game Over", titleX, titleY); 
+      player.len = startLength; 
+      player.dir = 3; // make it move down 
   }
 
   if (gamestate == 2){
@@ -348,11 +382,11 @@ void draw() {
     if (millis() > last+snakeDelay){
       last = millis();  
       player.move(player.dir); 
+      checkApple();
+      player.checkCollision(); 
     }
     // Draw the apple and the snake // 
-    checkApple();
     drawApples();
-    player.checkCollision(); 
     player.drawSnake(); 
   }
 
@@ -384,7 +418,7 @@ void keyPressed() {
 
   if (gamestate == 1){
     if (keyPressed){
-      gamestate = 0; 
+      gamestate = 0;
     }
   }
 
@@ -392,25 +426,18 @@ void keyPressed() {
 
     // For each directional key change the direction and move it based on that direction // 
     if (key == 'w') {
-      println("UP"); 
       if (player.dir != 3){
         player.changeDir(1); 
       }
-    }
-    if (key == 'a') {
-      println("LEFT"); 
+    } else if (key == 'a') {
       if (player.dir != 4){
         player.changeDir(2); 
       }  
-    }
-    if (key == 'd') {
-      println("RIGHT");
+    } else if (key == 'd') {
       if (player.dir != 2){
         player.changeDir(4); 
       } 
-    }
-    if (key == 's') {
-      println("DOWN");
+    } else if (key == 's') {
       if (player.dir != 1){
         player.changeDir(3); 
       }
@@ -442,7 +469,7 @@ void keyPressed() {
 
 void mouseReleased() {
   if (gamestate == 3){
-    // settings thing 
+    /* All the settings buttons */ 
     selfCollisionToggle.changeState(); 
     selfCollide = selfCollisionToggle.getState(); 
     teleportBordersToggle.changeState(); 
