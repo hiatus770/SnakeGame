@@ -1,7 +1,6 @@
 /*SNAKE GAME*/
 
 // add the frame rate selection thing 
-// addd high score and score display for the game over screen
 // add the random apple generation after a certain amount of time (make it ike 50% chance) 
 // Display the state of the settings for each (put like ON over the green square and OFF over the red one)
 // add eating apple animations 
@@ -36,13 +35,13 @@ PrintWriter data;
 color settingsColor = #A9A9A9; 
 color grey = #C0C0C0;
 
-// 1 is normal, 2 is black and white, 3 is high contrast 
-color[] BACKGROUND = new color[]{#03092b, #ffffff, #333333}; 
-color[] SNAKE = new color[]{#69ff5e, #000000, #00bfff}; 
-color[] APPLE = new color[]{#eb4034, #380000, #8cff00}; 
-color[] SCORE = new color[]{#2DFF00, #000000, #00bfff}; 
-color[] SETTINGTRUE = new color[]{ #5aff00,#d1ffb8,#69ff5e}; 
-color[] SETTINGFALSE = new color[]{#ff0000,#ff9e9e,#ff0550}; 
+// 1 is normal, 2 is black and white, 3 is high contrast, 4 is gradient blue green, 
+color[] BACKGROUND = new color[]{#03092b, #ffffff, #333333, #ffffff}; 
+color[] SNAKE = new color[]{#69ff5e, #000000, #00bfff, #000000}; 
+color[] APPLE = new color[]{#eb4034, #380000, #8cff00, #000000}; 
+color[] SCORE = new color[]{#2DFF00, #000000, #00bfff, #000000}; 
+color[] SETTINGTRUE = new color[]{ #5aff00,#d1ffb8,#69ff5e, #69ff5e}; 
+color[] SETTINGFALSE = new color[]{#ff0000,#ff9e9e,#ff0550, #69ff5e}; 
 
 /* Game settings */ 
 boolean selfCollide = true; 
@@ -143,7 +142,11 @@ class Snake{
 
   void drawSnake(){
     for(int i = 0; i < positions.size(); i++){
-      fill(SNAKE[theme]); 
+      if (SNAKE[theme] == APPLE[theme]){
+        fill(0, i*2, 255-i*2); 
+      } else {
+        fill(SNAKE[theme]); 
+      }
       rect(positions.get(i).x * sizeB, positions.get(i).y * sizeB, sizeB, sizeB); 
     }
   }
@@ -388,8 +391,14 @@ void draw() {
       text("Game Over", titleX, titleY); 
       player.len = startLength; 
       player.dir = 3; // make it move down
+      textSize(textS-40); 
+      text(String.format("SCORE %s", score), titleX+70, titleY+70); 
       if (score > highscore) {
         highscore = score; 
+        saveData(); 
+        text(String.format("NEW HIGHSCORE %s", score), titleX+70, titleY+70);
+      } else {
+        text(String.format("HIGHSCORE %s", highscore), titleX+70, titleY+140);
       }
       saveData(); 
   }
