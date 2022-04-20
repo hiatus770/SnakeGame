@@ -2,11 +2,12 @@
 
 // add the frame rate selection thing 
 // addd high score and score display for the game over screen
-// add the random apple generation after a certain amount of time (make it ike 50% chance)
-// make the game faster by improving .checkCollisions
-// add themes moment 
-// Reset score once dead      
+// add the random apple generation after a certain amount of time (make it ike 50% chance) 
+// Display the state of the settings for each (put like ON over the green square and OFF over the red one)
+// add eating apple animations 
 
+// Added save stuff
+// Added themes, need to add theme chooser though!!!!
 
 // Rows and columns for each block and its size
 int rows; int columns; 
@@ -15,23 +16,33 @@ int appleAmt = 1;
 int gamestate = 0; // 0 is title screen, 1 game over, 2 is game, 3 is settings page to adjust everything 
 int startLength = 10; 
 int textS = 100; 
-int score = 0;  
+int score; int highscore = 0;  
 int snakeDelay = 40; // controls how frequent snake is moved 
 int titleX = 80; int titleY = 80; // the title positions for the game
-int theme = 2; 
+int theme; 
+
+// Data saving stuff //
+
+/*
+first line is highscore from previous games
+second line is setting state one 
+third line is setting state two
+fourth line is the theme index 
+ */
+
+PrintWriter data; 
 
 /* Colors for the game */ 
-color bg = #03092b; 
-color snakeColor;
-color appleColor = #eb4034; 
-color scoreColor = #2DFF00;
 color settingsColor = #A9A9A9; 
 color grey = #C0C0C0;
 
 // 1 is normal, 2 is black and white, 3 is high contrast 
 color[] BACKGROUND = new color[]{#03092b, #ffffff, #333333}; 
-color[] SNAKE = new color[]{#eb4034, #000000, #00bfff}; 
+color[] SNAKE = new color[]{#69ff5e, #000000, #00bfff}; 
 color[] APPLE = new color[]{#eb4034, #380000, #8cff00}; 
+color[] SCORE = new color[]{#2DFF00, #000000, #00bfff}; 
+color[] SETTINGTRUE = new color[]{ #5aff00,#d1ffb8,#69ff5e}; 
+color[] SETTINGFALSE = new color[]{#ff0000,#ff9e9e,#ff0550}; 
 
 /* Game settings */ 
 boolean selfCollide = true; 
@@ -45,18 +56,30 @@ int lastGamestate = 0;
 /* Game font stuff */ 
 PFont gameFont;
 
-void setTheme(){
-  snakeColor = SNAKE[theme];
-  appleColor = APPLE[theme]; 
-  bg = BACKGROUND[theme]; 
+void saveData(){
+  data = createWriter("data.txt");
+  data.println(highscore);
+  data.println(selfCollide);
+  data.println(teleportBorders); 
+  data.println(theme); 
+  data.flush(); 
+  data.close(); 
+}
+
+void loadData(){
+  String[] loadedFile = loadStrings("data.txt");
+  highscore = parseInt(loadedFile[0]); 
+  selfCollide = parseBoolean(loadedFile[1]); 
+  teleportBorders = parseBoolean(loadedFile[2]); 
+  theme = parseInt(loadedFile[3]); 
 }
 
 /* Prints the score on the bottom right */ 
 void showScore(){
   textFont(gameFont);
-  fill(bg); 
+  fill(BACKGROUND[theme]); 
   rect(0, height-50, width, 50); // clear the thing before drawing a new one over it. 
-  fill(scoreColor); 
+  fill(SCORE[theme]); 
   textSize(30);
   text(score, 0, height-10);
 }
@@ -79,7 +102,7 @@ class Apple{
   }
 
   void drawApple(){
-    fill(appleColor); 
+    fill(APPLE[theme]); 
     rect(posX*sizeB, posY*sizeB, sizeB, sizeB);     
   }
 
@@ -120,7 +143,7 @@ class Snake{
 
   void drawSnake(){
     for(int i = 0; i < positions.size(); i++){
-      fill(snakeColor); 
+      fill(SNAKE[theme]); 
       rect(positions.get(i).x * sizeB, positions.get(i).y * sizeB, sizeB, sizeB); 
     }
   }
@@ -146,7 +169,7 @@ class Snake{
     }
     // Add a new coordinate into the thing then remove the last one // 
     pos remove = positions.get(positions.size()-1); 
-    fill(bg); 
+    fill(BACKGROUND[theme]); 
     rect(remove.x*sizeB, remove.y*sizeB, sizeB, sizeB); 
     positions.add(0, new pos(x, y)); 
 
@@ -214,9 +237,9 @@ class Button{
   void show(){
     textSize(30);
     if (state){
-      fill(snakeColor); 
+      fill(SETTINGTRUE[theme]); 
     } else {
-      fill(appleColor); 
+      fill(SETTINGFALSE[theme]); 
     } 
     rect(x, y, 40, 40); 
     fill(grey); 
@@ -318,9 +341,8 @@ void setup() {
   size(700, 700);
   surface.setTitle("Snake Game");
 
-  // Theme stuff
-  setTheme(); 
-  
+  loadData(); 
+
   // Rows and columns in the game 
   println("ROWS:", height/sizeB);
   println("COLUMNS:", width/sizeB); 
@@ -334,20 +356,21 @@ void setup() {
   // Display the title screen 
   if (gamestate == 0){
     gameFont = createFont("SourceCodePro-Black.ttf", 1);
-    fill(snakeColor); 
+    fill(SNAKE[theme]); 
     textFont(gameFont); 
     textSize(textS);
-    background(bg); 
+    background(BACKGROUND[theme]); 
     text("Snake Game", titleX ,titleY); 
   }
 }
 
 void draw() {  
+  // Title screen for the game 
   if (gamestate == 0){
     // Title screen moment 
     if (lastGamestate != 0){
-      fill(snakeColor); 
-      background(bg); 
+      fill(SNAKE[theme]); 
+      background(BACKGROUND[theme]); 
       textSize(textS);
       text("Snake Game", titleX , titleY); 
       println("\tGAME SETTINGS");
@@ -356,24 +379,31 @@ void draw() {
     }
   }
 
+  // Game over screen 
   if (gamestate == 1){
     // Game over screen // 
-      background(bg); 
-      fill(255, 0, 0);
+      background(BACKGROUND[theme]); 
+      fill(APPLE[theme]);
       textSize(textS);
       text("Game Over", titleX, titleY); 
       player.len = startLength; 
-      player.dir = 3; // make it move down 
+      player.dir = 3; // make it move down
+      if (score > highscore) {
+        highscore = score; 
+      }
+      saveData(); 
   }
 
+  // Game loop itself 
   if (gamestate == 2){
     // Actual game loop // 
     if (lastGamestate != 2){ // first game loop happens here 
       for(int i = 0; i < apples.size(); i++){apples.remove(i);} 
       noStroke();  
       player.reset(); 
-      background(bg);
+      background(BACKGROUND[theme]);
       generateApple();
+      score = 0; 
     }
     // Timer stuff // 
     m = millis()-last; 
@@ -390,18 +420,20 @@ void draw() {
     player.drawSnake(); 
   }
 
+  // Settings page
   if (gamestate == 3){
     if (lastGamestate != 3){
       noStroke();  
       background(settingsColor);
       textSize(70); 
-      fill(appleColor); 
+      fill(SCORE[theme]); 
       text("SETTINGS", titleX, titleY); 
       
       // Button stuff
       selfCollisionToggle.show();
       teleportBordersToggle.show(); 
     }
+    saveData(); 
   }
 
   // Set the last gamestate variable to the gamestate after being used 
