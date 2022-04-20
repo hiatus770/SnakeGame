@@ -4,19 +4,23 @@
 // add the random apple generation after a certain amount of time (make it ike 50% chance) 
 // Display the state of the settings for each (put like ON over the green square and OFF over the red one)
 // add eating apple animations 
+// reverse draw the snake from tail to head
+// color the head
+// maybe add more gradients to the themes 
+
 
 // Added save stuff
 // Added themes, need to add theme chooser though!!!!
 
 // Rows and columns for each block and its size
 int rows; int columns; 
-int sizeB = 10; // Block Size 
+int sizeB = 5; // Block Size 
 int appleAmt = 1; 
 int gamestate = 0; // 0 is title screen, 1 game over, 2 is game, 3 is settings page to adjust everything 
-int startLength = 10; 
+int startLength = 300; 
 int textS = 100; 
 int score; int highscore = 0;  
-int snakeDelay = 40; // controls how frequent snake is moved 
+int snakeDelay = 30; // controls how frequent snake is moved 
 int titleX = 80; int titleY = 80; // the title positions for the game
 int theme; 
 
@@ -41,7 +45,7 @@ color[] SNAKE = new color[]{#69ff5e, #000000, #00bfff, #000000};
 color[] APPLE = new color[]{#eb4034, #380000, #8cff00, #000000}; 
 color[] SCORE = new color[]{#2DFF00, #000000, #00bfff, #000000}; 
 color[] SETTINGTRUE = new color[]{ #5aff00,#d1ffb8,#69ff5e, #69ff5e}; 
-color[] SETTINGFALSE = new color[]{#ff0000,#ff9e9e,#ff0550, #69ff5e}; 
+color[] SETTINGFALSE = new color[]{#ff0000,#ff9e9e,#ff0550, #ff0550}; 
 
 /* Game settings */ 
 boolean selfCollide = true; 
@@ -137,13 +141,14 @@ class Snake{
       positions.add(new pos(0,0)); 
       positions.set(i, new pos(x, y--));
     } 
+    x = 20; y = 20; 
     dir = 3; 
   }
 
   void drawSnake(){
     for(int i = 0; i < positions.size(); i++){
       if (SNAKE[theme] == APPLE[theme]){
-        fill(0, i*2, 255-i*2); 
+        fill(0, (i%255)*2, 255-(i%255)*2); 
       } else {
         fill(SNAKE[theme]); 
       }
