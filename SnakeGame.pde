@@ -14,38 +14,36 @@
 
 // Rows and columns for each block and its size
 int rows; int columns; 
-int sizeB = 5; // Block Size 
+int sizeB = 10; // Block Size 
 int appleAmt = 1; 
 int gamestate = 0; // 0 is title screen, 1 game over, 2 is game, 3 is settings page to adjust everything 
-int startLength = 300; 
+int startLength = 10000; 
 int textS = 100; 
 int score; int highscore = 0;  
-int snakeDelay = 30; // controls how frequent snake is moved 
+int snakeDelay = 1; // controls how frequent snake is moved 
 int titleX = 80; int titleY = 80; // the title positions for the game
 int theme; 
 
 // Data saving stuff //
 
 /*
-first line is highscore from previous games
-second line is setting state one 
-third line is setting state two
+first line is highscore from previous games:second line is setting state one :third line is setting state two
 fourth line is the theme index 
  */
 
 PrintWriter data; 
 
-/* Colors for the game */ 
-color settingsColor = #A9A9A9; 
-color grey = #C0C0C0;
-
+/* Colors for the game */
 // 1 is normal, 2 is black and white, 3 is high contrast, 4 is gradient blue green, 
-color[] BACKGROUND = new color[]{#03092b, #ffffff, #333333, #ffffff}; 
-color[] SNAKE = new color[]{#69ff5e, #000000, #00bfff, #000000}; 
-color[] APPLE = new color[]{#eb4034, #380000, #8cff00, #000000}; 
-color[] SCORE = new color[]{#2DFF00, #000000, #00bfff, #000000}; 
+color[] BACKGROUND = new color[]{#03092b, #ffffff, #333333, #000000}; 
+color[] SNAKE = new color[]{#69ff5e, #000000, #00bfff, #ffffff}; 
+color[] APPLE = new color[]{#eb4034, #380000, #8cff00, #ffffff}; 
+color[] SCORE = new color[]{#afff40, #380000, #00bfff, #ffffff}; 
 color[] SETTINGTRUE = new color[]{ #5aff00,#d1ffb8,#69ff5e, #69ff5e}; 
 color[] SETTINGFALSE = new color[]{#ff0000,#ff9e9e,#ff0550, #ff0550}; 
+color[] HEAD = new  color[]{#69ff5e, #000000, #00bfff, #ffffff}; 
+String[] NAME = new String[]{"Default", "Black and White", "High Contrast", "Gradient"}; 
+color[] SETTINGS = new color[]{ #03092b, #ffffff, #333333, #000000}; 
 
 /* Game settings */ 
 boolean selfCollide = true; 
@@ -146,9 +144,12 @@ class Snake{
   }
 
   void drawSnake(){
-    for(int i = 0; i < positions.size(); i++){
-      if (SNAKE[theme] == APPLE[theme]){
-        fill(0, (i%255)*2, 255-(i%255)*2); 
+    for(int i = positions.size()-1; i >= 0; i--){
+      if (i == 0){
+        fill(HEAD[theme]); 
+      } else if (SNAKE[theme] == APPLE[theme]){
+        // if snake head is equal to apple color then do a little gradienting
+        fill(i%255, i%255, 255-(i%255)); 
       } else {
         fill(SNAKE[theme]); 
       }
@@ -250,7 +251,7 @@ class Button{
       fill(SETTINGFALSE[theme]); 
     } 
     rect(x, y, 40, 40); 
-    fill(grey); 
+    fill(SCORE[theme]); 
     text(msg, x + 60, y+30);
   }
 
@@ -275,48 +276,53 @@ class Button{
 
 }
 
-class triButton{
-  int a, b, c, x, y; String msg; int val; 
-
-  triButton(int x, int y, int a, int b, int c, String msg){
-    this.a = a;
-    this.b = b;
-    this.c = c;
+class ClickButton{
+  String msg; int x; int y; int min; int max; int state; 
+  ClickButton(String msg, int x, int y, int min, int max){
+    this.max = max;
+    this.min = min;
+    this.y = y;
+    this.x = x;
     this.msg = msg;
-    this.x = x; 
-    this.y = y; 
-    val = a; 
-  } 
+    state = theme;
+  }
 
-  // displays the triple button arrangement 
+  void setText(String newMsg){
+    msg = newMsg; 
+  }
+
+  int getTheme(){
+    return state; 
+  }
+
   void show(){
-    if (a == val){
-      
-    }
-    if (b == val){
-
-    }
-    if (c == val){
-
-    }
+    textSize(30);
+    fill(SCORE[theme]); 
+    rect(x, y, 40, 40); 
+    fill(SCORE[theme]); 
+    text(msg, x + 60, y+30);
   }
 
-  void changeState(){
-
+  boolean press(){
+    if (mouseX > x && mouseX < x+40 && mouseY > y && mouseY < y+40){
+      state++; 
+      if (state > max){
+        state = min; 
+      }
+      theme = state; 
+      saveData(); 
+    return true; 
+    }
+    return false; 
   }
-
-  // retuns the value of the active button
-  void getValue(){
-
-  }
-
-
 }
 
+/* GAME CLASSES */ 
 Snake player = new Snake(startLength, 20, 20);  
 ArrayList<Apple> apples = new ArrayList<Apple>();
 Button selfCollisionToggle = new Button("Self Collision", 50, 200); 
 Button teleportBordersToggle = new Button("Teleport Borders", 50, 270); 
+ClickButton themeButton = new ClickButton(NAME[theme], 50, 340, 0, 3); 
 
 void generateApple(){
   for(int i = 0; i < appleAmt; i++){
@@ -342,7 +348,6 @@ void drawApples(){
     apples.get(i).drawApple(); 
   }
 }
-
 
 void setup() {
   // setting up the window size and name 
@@ -438,14 +443,15 @@ void draw() {
   if (gamestate == 3){
     if (lastGamestate != 3){
       noStroke();  
-      background(settingsColor);
+      background(SETTINGS[theme]);
       textSize(70); 
       fill(SCORE[theme]); 
       text("SETTINGS", titleX, titleY); 
       
       // Button stuff
       selfCollisionToggle.show();
-      teleportBordersToggle.show(); 
+      teleportBordersToggle.show();
+      themeButton.show();  
     }
     saveData(); 
   }
@@ -499,6 +505,7 @@ void keyPressed() {
 
     }
 
+    // Move to settings page. 
     if (key == 'E' || key == 'e'){
       gamestate = 3;
     }
@@ -511,6 +518,12 @@ void keyPressed() {
     }
   }
 
+  // For when trying to hide it or exit quickly just press [f] 
+  if (key == 'f'){
+    saveData(); 
+    exit(); 
+  }
+
 }  
 
 void mouseReleased() {
@@ -520,5 +533,19 @@ void mouseReleased() {
     selfCollide = selfCollisionToggle.getState(); 
     teleportBordersToggle.changeState(); 
     teleportBorders = teleportBordersToggle.getState(); 
+    if (themeButton.press()){
+      noStroke();  
+      background(SETTINGS[theme]);
+      textSize(70); 
+      fill(SCORE[theme]); 
+      text("SETTINGS", titleX, titleY); 
+      
+      // Button stuff
+      selfCollisionToggle.show();
+      teleportBordersToggle.show();
+      themeButton.setText(NAME[theme]); 
+      themeButton.show(); 
+      println("PRESSED!"); 
+    }
   }
 }
