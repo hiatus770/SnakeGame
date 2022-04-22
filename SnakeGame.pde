@@ -17,7 +17,7 @@ int rows; int columns;
 int sizeB = 5; // Block Size 
 int appleAmt = 1; 
 int gamestate = 0; // 0 is title screen, 1 game over, 2 is game, 3 is settings page to adjust everything 
-int startLength = 10; 
+int startLength = 10000; 
 int textS = 100; 
 int score; int highscore = 0;  
 int snakeDelay = 1; // controls how frequent snake is moved 
@@ -284,7 +284,11 @@ class ClickButton{
     this.y = y;
     this.x = x;
     this.msg = msg;
+<<<<<<< HEAD
     state = min;
+=======
+    state = theme;
+>>>>>>> 2e471274efac0d398f7864c0aeaaef7fada54c5f
   }
 
   void setText(String newMsg){
@@ -303,12 +307,22 @@ class ClickButton{
     text(msg, x + 60, y+30);
   }
 
+<<<<<<< HEAD
   boolean press(int i){
     if (mouseX > x && mouseX < x+40 && mouseY > y && mouseY < y+40){
       state+=i; 
       if (state > max){
         state = min; 
       }
+=======
+  boolean press(){
+    if (mouseX > x && mouseX < x+40 && mouseY > y && mouseY < y+40){
+      state++; 
+      if (state > max){
+        state = min; 
+      }
+      theme = state; 
+>>>>>>> 2e471274efac0d398f7864c0aeaaef7fada54c5f
       saveData(); 
     return true; 
     }
@@ -322,8 +336,11 @@ ArrayList<Apple> apples = new ArrayList<Apple>();
 Button selfCollisionToggle = new Button("Self Collision", 50, 200); 
 Button teleportBordersToggle = new Button("Teleport Borders", 50, 270); 
 ClickButton themeButton = new ClickButton(NAME[theme], 50, 340, 0, 3); 
+<<<<<<< HEAD
 String display = String.format("FRAMERATE:%s", snakeDelay); 
 ClickButton frameButton = new ClickButton(display, 50, 410, 0, 60); 
+=======
+>>>>>>> 2e471274efac0d398f7864c0aeaaef7fada54c5f
 
 void generateApple(){
   for(int i = 0; i < appleAmt; i++){
@@ -537,8 +554,8 @@ void mouseReleased() {
     selfCollide = selfCollisionToggle.getState(); 
     teleportBordersToggle.changeState(); 
     teleportBorders = teleportBordersToggle.getState(); 
-    if (themeButton.press(1)){
       theme = themeButton.state; 
+    if (themeButton.press(1)){
       noStroke();  
       background(SETTINGS[theme]);
       textSize(70); 
@@ -548,9 +565,9 @@ void mouseReleased() {
       // Button stuff
       selfCollisionToggle.show();
       teleportBordersToggle.show();
-      frameButton.show(); 
       themeButton.setText(NAME[theme]); 
       themeButton.show(); 
+      frameButton.show(); 
       println("PRESSED!"); 
     }
     if (frameButton.press(10)){
